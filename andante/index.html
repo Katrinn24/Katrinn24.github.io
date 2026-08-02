@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Andante — многоступенчатый таймер</title>
+<meta name="description" content="Andante ведёт вас через последовательность действий: тренировка, готовка, учёба, работа. Собираете сценарий из этапов — приложение само отсчитывает время и объявляет переходы.">
+<style>
+  :root {
+    --bg: #FAFAFC; --card: #fff; --text: #1E2430; --muted: #7A8194;
+    --primary: #6A89FF; --shadow: rgba(30,36,48,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12141A; --card: #1D212C; --text: #EEF1F6; --muted: #9AA2B2;
+      --primary: #4A66DA; --shadow: rgba(0,0,0,.45);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 56px 20px 60px; background: var(--bg); color: var(--text);
+    font: 17px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 620px; }
+  h1 { font-size: 40px; margin: 0 0 10px; letter-spacing: -.5px; }
+  .lead { font-size: 19px; color: var(--muted); margin: 0 0 36px; }
+  .card {
+    background: var(--card); border-radius: 20px; padding: 22px;
+    box-shadow: 0 8px 26px var(--shadow); margin-bottom: 14px;
+  }
+  .card h2 { font-size: 17px; margin: 0 0 6px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .cta {
+    display: inline-block; text-decoration: none; color: #fff; background: var(--primary);
+    border-radius: 16px; padding: 15px 30px; font-weight: 600; margin-top: 26px;
+  }
+  footer { margin-top: 44px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Andante</h1>
+  <p class="lead">
+    Многоступенчатый таймер, который ведёт вас по шагам — чтобы во время тренировки,
+    готовки или занятия не думать о времени и не смотреть на экран.
+  </p>
+
+  <div class="card">
+    <h2>Сценарий вместо таймера</h2>
+    <p>Собираете последовательность этапов с повторами — «разминка 5 минут, затем бег
+       и ходьба восемь раз, затем заминка». Дальше приложение ведёт само.</p>
+  </div>
+  <div class="card">
+    <h2>Работает в фоне</h2>
+    <p>Отсчёт продолжается при свёрнутом приложении и погашенном экране. Управление —
+       прямо из уведомления.</p>
+  </div>
+  <div class="card">
+    <h2>Слышно под музыку</h2>
+    <p>Сигнал приглушает музыку в наушниках. Вместо звука можно включить голос:
+       «Новый этап: Бег».</p>
+  </div>
+  <div class="card">
+    <h2>Для разных занятий</h2>
+    <p>Спорт, учёба, работа, готовка, здоровье и быт — со своей статистикой
+       и готовыми сценариями.</p>
+  </div>
+
+  <a class="cta" href="https://apps.rustore.ru/app/com.timeflow.app">Установить из RuStore</a>
+
+  <footer>
+    <a href="privacy.html">Политика конфиденциальности</a> ·
+    <a href="mailto:timeflowRu@yandex.ru">Поддержка</a>
+  </footer>
+</main>
+</body>
+</html>

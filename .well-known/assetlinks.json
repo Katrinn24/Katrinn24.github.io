@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.timeflow.app",
+      "sha256_cert_fingerprints": [
+        "FB:3E:29:90:33:18:65:16:4E:E8:AA:B5:FF:EA:66:76:49:C8:A4:20:13:BB:7A:EF:F5:9A:E0:DE:CC:0A:03:9D"
+      ]
+    }
+  }
+]

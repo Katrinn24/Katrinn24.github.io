@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Сценарий · Andante</title>
+<style>
+  :root {
+    --bg: #FAFAFC; --card: #fff; --text: #1E2430; --muted: #7A8194;
+    --soft: #9EA4B4; --primary: #6A89FF; --shadow: rgba(30,36,48,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12141A; --card: #1D212C; --text: #EEF1F6; --muted: #9AA2B2;
+      --soft: #6C7486; --primary: #4A66DA; --shadow: rgba(0,0,0,.45);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 18px 48px; background: var(--bg); color: var(--text);
+    font: 16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 520px; }
+  .eyebrow { color: var(--muted); font-size: 13px; }
+  h1 { font-size: 27px; margin: 6px 0 16px; line-height: 1.2; }
+  .facts {
+    display: flex; flex-wrap: wrap; gap: 18px; background: var(--card);
+    border-radius: 18px; padding: 16px; box-shadow: 0 6px 20px var(--shadow); margin-bottom: 22px;
+  }
+  .fact { font-size: 14px; font-weight: 500; }
+  .fact span { color: var(--muted); font-weight: 400; }
+  h2 { font-size: 11px; letter-spacing: 1.3px; color: var(--soft); margin: 0 0 10px; }
+  .stage {
+    display: flex; align-items: center; gap: 12px; background: var(--card);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .stage.inset { margin-left: 16px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .stage .name { flex: 1; font-size: 15px; }
+  .stage .time { color: var(--muted); font-weight: 600; font-size: 14px; }
+  .repeat {
+    display: inline-block; background: #8B5CF6; color: #fff; font-size: 12px;
+    font-weight: 700; border-radius: 20px; padding: 4px 11px; margin: 6px 0 8px;
+  }
+  .cta {
+    display: block; text-align: center; text-decoration: none; color: #fff;
+    background: var(--primary); border-radius: 18px; padding: 17px;
+    font-size: 16px; font-weight: 600; margin-top: 26px;
+  }
+  .hint { color: var(--muted); font-size: 13px; text-align: center; margin-top: 14px; }
+  .error { background: var(--card); border-radius: 18px; padding: 24px; text-align: center;
+           box-shadow: 0 6px 20px var(--shadow); }
+  .error h1 { font-size: 20px; margin: 0 0 8px; }
+  .error p { color: var(--muted); font-size: 14px; margin: 0; }
+</style>
+</head>
+<body>
+<main id="root"></main>
+
+<script>
+// Сценарий приезжает в адресе после решётки: браузер эту часть на сервер не отправляет,
+// поэтому чужие сценарии не попадают в логи хостинга. Разбираем прямо здесь.
+
+const ACCENTS = {
+  EMERALD: '#10B981', ORANGE: '#FF9F45', PURPLE: '#8B5CF6',
+  BLUE: '#3B82F6',    CORAL: '#FF6B6B',  PRIMARY: '#6A89FF'
+};
+const CATEGORIES = {
+  SPORT: 'Спорт', STUDY: 'Учёба', WORK: 'Работа',
+  COOKING: 'Готовка', LIFESTYLE: 'Здоровье и быт', OTHER: 'Другое'
+};
+
+function decodeBase64Url(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  const bytes = Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function fmt(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if (sec >= 3600) {
+    const h = Math.floor(sec / 3600);
+    return h + ':' + String(Math.floor((sec % 3600) / 60)).padStart(2, '0') +
+           ':' + String(s).padStart(2, '0');
+  }
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function human(sec) {
+  if (sec < 60) return sec + ' сек';
+  const m = Math.floor(sec / 60), rest = sec % 60;
+  if (rest > 0 && m < 10) return m + ' мин ' + rest + ' сек';
+  return Math.ceil(sec / 60) + ' мин';
+}
+
+function plural(n, one, few, many) {
+  if (n % 100 >= 11 && n % 100 <= 14) return n + ' ' + many;
+  if (n % 10 === 1) return n + ' ' + one;
+  if (n % 10 >= 2 && n % 10 <= 4) return n + ' ' + few;
+  return n + ' ' + many;
+}
+
+function flatten(blocks) {
+  const out = [];
+  for (const b of blocks) {
+    if (b.t === 'stage' && b.stage) out.push(b.stage);
+    else if (b.t === 'repeat') for (let i = 0; i < (b.times || 1); i++) out.push(...(b.stages || []));
+  }
+  return out;
+}
+
+function el(html) {
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function stageRow(stage, inset) {
+  const color = ACCENTS[stage.a] || ACCENTS.PRIMARY;
+  return el(
+    '<div class="stage' + (inset ? ' inset' : '') + '">' +
+      '<div class="dot" style="background:' + color + '"></div>' +
+      '<div class="name">' + (escapeHtml(stage.n) || 'Этап') + '</div>' +
+      '<div class="time">' + fmt(stage.d || 0) + '</div>' +
+    '</div>');
+}
+
+function showError(title, text) {
+  document.getElementById('root').appendChild(el(
+    '<div class="error"><h1>' + title + '</h1><p>' + text + '</p></div>'));
+}
+
+function render() {
+  const fragment = location.hash.replace(/^#/, '');
+  if (!fragment) {
+    showError('Здесь пусто', 'Ссылка открыта без данных сценария.');
+    return;
+  }
+  const dot = fragment.indexOf('.');
+  const version = parseInt(fragment.slice(0, dot), 10);
+  if (!dot || isNaN(version)) {
+    showError('Ссылка не открылась', 'Похоже, её обрезали при пересылке.');
+    return;
+  }
+  if (version > 1) {
+    showError('Нужна свежая версия', 'Ссылка создана более новой версией приложения.');
+    return;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(decodeBase64Url(fragment.slice(dot + 1)));
+  } catch (e) {
+    showError('Ссылка не открылась', 'Похоже, её обрезали при пересылке или она испорчена.');
+    return;
+  }
+
+  const blocks = data.b || [];
+  const stages = flatten(blocks);
+  const total = stages.reduce((sum, s) => sum + (s.d || 0), 0);
+  const root = document.getElementById('root');
+
+  root.appendChild(el('<div class="eyebrow">Вам прислали сценарий</div>'));
+  root.appendChild(el('<h1>' + escapeHtml(data.n) + '</h1>'));
+  root.appendChild(el(
+    '<div class="facts">' +
+      '<div class="fact">' + human(total) + ' <span>всего</span></div>' +
+      '<div class="fact">' + plural(stages.length, 'этап', 'этапа', 'этапов') + '</div>' +
+      '<div class="fact">' + (CATEGORIES[data.c] || 'Другое') + '</div>' +
+    '</div>'));
+
+  root.appendChild(el('<h2>СОСТАВ</h2>'));
+  for (const b of blocks) {
+    if (b.t === 'stage' && b.stage) {
+      root.appendChild(stageRow(b.stage, false));
+    } else if (b.t === 'repeat') {
+      root.appendChild(el('<div><span class="repeat">Повтор ×' + (b.times || 1) + '</span></div>'));
+      for (const s of (b.stages || [])) root.appendChild(stageRow(s, true));
+    }
+  }
+
+  root.appendChild(el(
+    '<a class="cta" href="https://apps.rustore.ru/app/com.timeflow.app">Открыть в Andante</a>'));
+  root.appendChild(el(
+    '<div class="hint">Если приложение установлено, ссылка откроется в нём автоматически.<br>' +
+    'Иначе — установите Andante, и сценарий добавится по этой же ссылке.</div>'));
+}
+
+render();
+</script>
+</body>
+</html>

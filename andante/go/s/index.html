@@ -49,6 +49,10 @@
     background: var(--primary); border-radius: 18px; padding: 17px;
     font-size: 16px; font-weight: 600; margin-top: 26px;
   }
+  .secondary {
+    display: block; text-align: center; text-decoration: none; color: var(--muted);
+    font-size: 14px; margin-top: 16px;
+  }
   .hint { color: var(--muted); font-size: 13px; text-align: center; margin-top: 14px; }
   .error { background: var(--card); border-radius: 18px; padding: 24px; text-align: center;
            box-shadow: 0 6px 20px var(--shadow); }
@@ -187,11 +191,18 @@ function render() {
     }
   }
 
+  // Главная кнопка ведёт в приложение собственной схемой приложения, а не в магазин.
+  // Такая ссылка не требует проверки владения доменом и срабатывает всегда, если
+  // приложение установлено. Данные сценария переносим в неё как есть — они лежат
+  // после решётки и от смены схемы не меняются.
   root.appendChild(el(
-    '<a class="cta" href="https://apps.rustore.ru/app/com.timeflow.app">Открыть в Andante</a>'));
+    '<a class="cta" href="andante://go/s#' + fragment + '">Открыть в приложении</a>'));
   root.appendChild(el(
-    '<div class="hint">Если приложение установлено, ссылка откроется в нём автоматически.<br>' +
-    'Иначе — установите Andante, и сценарий добавится по этой же ссылке.</div>'));
+    '<a class="secondary" href="https://apps.rustore.ru/app/com.timeflow.app">' +
+    'Нет приложения? Установить Andante</a>'));
+  root.appendChild(el(
+    '<div class="hint">Сценарий целиком лежит в самой ссылке — ' +
+    'после установки откройте её ещё раз, и он добавится.</div>'));
 }
 
 render();

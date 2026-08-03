@@ -76,11 +76,24 @@ const CATEGORIES = {
   COOKING: 'Готовка', LIFESTYLE: 'Здоровье и быт', OTHER: 'Другое'
 };
 
-function decodeBase64Url(s) {
+function base64UrlToBytes(s) {
   s = s.replace(/-/g, '+').replace(/_/g, '/');
   while (s.length % 4) s += '=';
-  const bytes = Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  return new TextDecoder('utf-8').decode(bytes);
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+
+// Версия 1 — обычный JSON, версия 2 — он же, но сжатый: так ссылка короче примерно вдвое.
+// Распаковка встроена в браузер, свои библиотеки не нужны.
+async function decodePayload(version, encoded) {
+  const bytes = base64UrlToBytes(encoded);
+  if (version < 2) return new TextDecoder('utf-8').decode(bytes);
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('DecompressionStream не поддерживается');
+  }
+  const stream = new Blob([bytes]).stream()
+      .pipeThrough(new DecompressionStream('deflate-raw'));
+  const buffer = await new Response(stream).arrayBuffer();
+  return new TextDecoder('utf-8').decode(buffer);
 }
 
 function fmt(sec) {
@@ -142,7 +155,7 @@ function showError(title, text) {
     '<div class="error"><h1>' + title + '</h1><p>' + text + '</p></div>'));
 }
 
-function render() {
+async function render() {
   const fragment = location.hash.replace(/^#/, '');
   if (!fragment) {
     showError('Здесь пусто', 'Ссылка открыта без данных сценария.');
@@ -154,14 +167,14 @@ function render() {
     showError('Ссылка не открылась', 'Похоже, её обрезали при пересылке.');
     return;
   }
-  if (version > 1) {
+  if (version > 2) {
     showError('Нужна свежая версия', 'Ссылка создана более новой версией приложения.');
     return;
   }
 
   let data;
   try {
-    data = JSON.parse(decodeBase64Url(fragment.slice(dot + 1)));
+    data = JSON.parse(await decodePayload(version, fragment.slice(dot + 1)));
   } catch (e) {
     showError('Ссылка не открылась', 'Похоже, её обрезали при пересылке или она испорчена.');
     return;
